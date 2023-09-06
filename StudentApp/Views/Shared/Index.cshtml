@@ -1,0 +1,260 @@
+﻿@model StudentApp.Models.ViewModel.IndexStudentList
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <button type="button" id="AddStudent" class="btn btn-primary">Add Student</button>
+</div>
+<br />
+<div class="row">
+    @if (!Model.ErrorStatus)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Surname</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Delete</th>
+                    <th scope="col">Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+
+                    @foreach (var item in Model.Students!)
+                    {
+                    <tr>
+                        <th>@item.Name</th>
+                        <th>@item.Surname</th>
+                        <th>@item.Phone</th>
+                        <th>
+                            <a class="delete-link" data-studentid=@item.Id href="#"> Delete</a>
+                        </th>
+                        <th>
+                            <a class="edit-link" data-studentid=@item.Id href="#"> Update</a>
+                        </th>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="row">
+                <h1 class="error"> @Model.ErrorMessage</h1>
+            </div>
+        }
+
+</div>
+
+<div class="modal" tabindex="-1" id="myUpdateModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Form</h5>
+            </div>
+            <input hidden name="Id" id="modalUpdateId" value="" />
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Name</label>
+                    <input type="text" class="form-control" name="Name" id="modalUpdateName" value="" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Surname</label>
+                    <input type="text" class="form-control" name="Surname" id="modalUpdateSurname" value="" placeholder="Surname">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Phone</label>
+                    <input type="text" class="form-control" name="Phone" id="modalUpdatePhone" value="" placeholder="Phone">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Address</label>
+                    <input type="text" class="form-control" name="Address" id="modalUpdateAddress" value="" placeholder="Address">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Class</label>
+                    <input type="text" class="form-control" name="Class" id="modalUpdateClass" value="" placeholder="Class">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="ModalUpdateButton" class="btn btn-primary">Update</button>
+                <button type="button" id="ModalUpdateCloseButton" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal" tabindex="-1" id="myInsertModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Form</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="exampleInputName">Name</label>
+                    <input type="text" class="form-control" id="modalInsertName" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputSurname">Surname</label>
+                    <input type="text" class="form-control" id="modalInsertSurname" placeholder="Surname">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPhone">Phone</label>
+                    <input type="text" class="form-control" id="modalInsertPhone" placeholder="Phone">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputAddress">Address</label>
+                    <input type="text" class="form-control" id="modalInsertAddress" value="" placeholder="Address">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputClass">Class</label>
+                    <input type="text" class="form-control" name="Class" id="modalInsertClass" value="" placeholder="Class">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="ModalInsertButton" class="btn btn-primary">Insert</button>
+                <button type="button" id="ModalInsertCloseButton" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>$(document).ready(function () {
+
+
+            $(".delete-link").on("click", function (e) {
+                e.preventDefault();
+                var studentId = $(this).data("studentid");
+                Swal.fire({
+                    title: 'Emin Misin?',
+                    text: "Öğrenciyi Silmek ister misin ?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sil',
+                    cancelButtonText: 'Vazgeç'
+                }).then((result) => {
+                    console.log("result.isConfirmed", result.isConfirmed);
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "Student/Delete/" + studentId,
+                            type: "DELETE",
+                            success: function (indexStudentList) {
+                                Swal.fire({
+                                    title: 'Başarılı!',
+                                    text: 'Öğrenci başarıyla silindi.',
+                                    icon: 'success',
+                                    confirmButtonText: 'Tamam'
+
+                                });
+                                location.reload();
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    title: 'Hata!',
+                                    text: 'Silme işlemi sırasında bir hata oluştu.',
+                                    icon: 'error',
+                                    confirmButtonText: 'Tamam'
+
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(".edit-link").on("click", async function (e) {
+
+                var studentId = $(this).data("studentid");
+                $.ajax({
+                    url: "/Student/GetById/" + studentId,
+                    type: "GET",
+                    success: function (indexStudentList) {
+                        $('#modalUpdateId').val(indexStudentList.student.id);
+                        $('#modalUpdateName').val(indexStudentList.student.name);
+                        $('#modalUpdateSurname').val(indexStudentList.student.surname);
+                        $('#modalUpdatePhone').val(indexStudentList.student.phone);
+                        $('#modalUpdateAddress').val(indexStudentList.student.address);
+                        $('#modalUpdateClass').val(indexStudentList.student.class);
+                        $('#myUpdateModal').modal('show');
+                    },
+                    error: function () {
+                        Swal.fire("Hata");
+                    }
+                });
+
+            });
+
+            $("#ModalUpdateButton").on("click", async function (e) {
+                const updateStudent = {
+                    Id: $("#modalUpdateId").val(),
+                    Name: $("#modalUpdateName").val(),
+                    Surname: $("#modalUpdateSurname").val(),
+                    Phone: $("#modalUpdatePhone").val(),
+                    Address: $("#modalUpdateAddress").val(),
+                    Class: $("#modalUpdateClass").val()
+                };
+
+                console.log("updateStudent", updateStudent);
+                $.ajax({
+                    url: "/Student/Update",
+                    type: "POST",
+                    dataType: "json",
+                    data: updateStudent,
+                    success: function (result) {
+
+                        location.reload();
+                        console.log(result);
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+
+                        console.error(errorThrown);
+                    }
+                });
+            });
+
+            $("#ModalUpdateCloseButton").on("click", async function (e) {
+                $('#myUpdateModal').modal('hide');
+            });
+
+            $("#AddStudent").on("click", async function (e) {
+                $('#myInsertModal').modal('show');
+            });
+
+            $("#ModalInsertButton").on("click", async function (e) {
+                const insertStudent = {
+                    Id: $("#modalInsertId").val(),
+                    Name: $("#modalInsertName").val(),
+                    Surname: $("#modalInsertSurname").val(),
+                    Phone: $("#modalInsertPhone").val(),
+                    Address: $("#modalInsertAddress").val(),
+                    Class: $("#modalInsertClass").val()
+                };
+
+                console.log("insertStudent", insertStudent);
+               $.ajax({
+                    url: "/Student/Insert",
+                    type: "POST",
+                    dataType: "json",
+                    data: insertStudent,
+                    success: function (result) {
+                        location.reload();
+                        console.log(result);
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        console.error(errorThrown);
+                    }
+                });
+            });
+
+            $("#ModalInsertCloseButton").on("click", async function (e) {
+                $('#myInsertModal').modal('hide');
+            });
+
+        });</script>
+}

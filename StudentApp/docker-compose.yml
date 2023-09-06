@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  sql_server:
+    image: mcr.microsoft.com/azure-sql-edge
+    hostname: 8e6b43e30aa4
+    user: mssql
+    mac_address: 02:42:ac:11:00:03
+    environment:
+      ACCEPT_EULA: "1"
+      MSSQL_SA_PASSWORD: "Password123"
+      MSSQL_PID: "Developer"
+      MSSQL_USER: "SA"
+      PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      MSSQL_RPC_PORT: "135"
+      CONFIG_EDGE_BUILD: "1"
+      PAL_BOOT_WITH_MINIMAL_CONFIG: "1"
+      PAL_ENABLE_PAGE_ALIGNED_PE_FILE_CREATION: "1"
+      LD_LIBRARY_PATH: "/opt/mssql/lib"
+    volumes:
+      - /var/opt/mssql-extensibility
+      - /var/opt/mssql-extensibility/data
+      - /var/opt/mssql-extensibility/log
+    ports:
+      - "1433:1433"
+    restart: "no"
+    labels:
+      - com.azure.dev.image.build.sourceversion=72faef9b044501d51144292b0963d62cea69a7c6
+      - com.azure.dev.image.system.teamfoundationcollectionuri=https://dev.azure.com/tigerdid/
+      - com.microsoft.product=Microsoft SQL Server
+      - com.microsoft.version=15.0.2000.1565
+      - vendor=Microsoft
+    runtime: runc
+
+    redis:
+        image: "redis:latest"
+        ports:
+          - "6379:6379"
