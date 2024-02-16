@@ -20,8 +20,20 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.artifactStagingDirectory)'
     zipAfterPublish: True
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: :'$(solution)'
+    configuration: :'$(buildConfigutation)'
+   
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    zipAfterPublish: false
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    
 - task: PublishBuildArtifacts@1
   inputs:
-   PathtoPublish: '$(Build.artifactStagingDirectory)'
-   ArtifactName: 'burgazli.com'
-   
+    TargetPath: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'netCoreStudentAppDrop'
