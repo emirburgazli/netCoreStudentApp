@@ -1,0 +1,66 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+variables:
+  IISWebAppName: 'netCoreStudentAppIIS'
+  IISWebSiteName: 'burgazli.com'
+
+resources:
+  pipelines:
+    - pipeline: 'test'
+      project: 'ProjectOne'
+      source: 'azure-pipelines'
+      branch: 'main'
+
+stages:
+  - stage: Stage_DeployWebApp
+    displayName: 'Job - Deploy WebApp'
+    
+    jobs:
+      - deployment: Job_DeployWebApp
+        displayName: 'Job - DeployApp'
+        environment: 'dev.WIN-TTCB83P9FR6'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+
+                - download: 'test'
+                  name: 'DownloadBuildArtifacts'
+                  displayName: 'Download Build Artifacts'
+                  artifact: 'netCoreStudentAppDrop'
+
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: ${{variables.IISWebSiteName}}
+                    
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopAppPool'
+                  displayName: 'Stop App Pool'
+                  inputs:
+                    IISDeploymentType: 'IISApplicationPool'
+                    ActionIISApplicationPool: 'RecycleAppPool'
+                    StartStopRecycleAppPoolName: 'DefaultAppPool'
+
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  inputs:
+                    WebSiteName: '${{variables.IISWebSiteName}}'
+                    VirtualApplication: '${{variables.IISWebAppName}}'
+                    Package: '$(Pipeline.Workspace)\BuildPipleine\'
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StartIIS'
+                  displayName: 'Start IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: ${{variables.IISWebSiteName}}
