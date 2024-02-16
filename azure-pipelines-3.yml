@@ -1,0 +1,51 @@
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: 'Release'
+
+  #Replace these variables to suit your application
+  projectName: 'WeatherService'
+  websiteName: 'WeatherService'
+  appPoolName: 'WeatherService'
+
+stages:
+- stage: 'Build'
+  displayName: 'Build'
+  jobs:
+     - job: 
+       steps:  
+        - task: DotNetCoreCLI@2
+          displayName: 'dotnet restore'
+          inputs:
+            command: 'restore'
+            projects: '*.sln'
+
+        - task: DotNetCoreCLI@2
+          displayName: Build
+          inputs:
+            command: 'build'
+            projects: '*.sln'
+            arguments: --configuration Release
+
+        - task: DotNetCoreCLI@2
+          displayName: Test
+          inputs:
+            command: test
+            projects: '*.sln'
+            arguments: '--configuration $(BuildConfiguration)'
+       
+        - task: DotNetCoreCLI@2
+          displayName: 'Publish the project - $(buildConfiguration)'
+          inputs:
+            command: 'publish'
+            projects: '**/*.csproj'
+            publishWebProjects: false
+            arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
+            zipAfterPublish: true
+
+        - publish: '$(Build.ArtifactStagingDirectory)'
+          artifact: drop
